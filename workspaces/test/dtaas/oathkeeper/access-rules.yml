@@ -30,7 +30,7 @@
     validated via Keycloak introspection.
     Proxies to the DTaaS web client. Covers the SPA root and known sub-paths.
   match:
-    url: "<^https?://[^/]*(/($|library(/.*)?$|digitaltwins(/.*)?$|preview(/.*)?$|create(/.*)?$|env\\.js$|static(/.*)?$|favicon\\.ico$|manifest\\.json$|logo[^/]*\\.(png|svg|ico)$))?$>"
+    url: "<^https?://[^/]*(/($|assets(/.*)?$|library(/.*)?$|digitaltwins(/.*)?$|preview(/.*)?$|create(/.*)?$|env\\.js$|static(/.*)?$|favicon\\.ico$|manifest\\.json$|logo[^/]*\\.(png|svg|ico)$))?$>"
     methods:
       - GET
       - HEAD

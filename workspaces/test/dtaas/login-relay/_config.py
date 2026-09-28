@@ -14,7 +14,7 @@ WORKSPACE_PREFIXES = tuple(
     if u.strip("/")
 )
 SPA_PREFIXES = (
-    "/library", "/digitaltwins", "/preview", "/create",
+    "/assets", "/library", "/digitaltwins", "/preview", "/create",
     "/static", "/env.js", "/favicon.ico", "/manifest.json", "/logo",
 )
 
