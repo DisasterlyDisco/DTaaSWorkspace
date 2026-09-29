@@ -34,13 +34,15 @@ services:
       users:
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0.7
+    image: quay.io/keycloak/keycloak:26.7.4
     restart: unless-stopped
     command:
       - "start"
       - "--proxy-headers=xforwarded"
       - "--hostname-strict=false"
       - "--http-relative-path=/auth"
+      - "--db=dev-file"
+      - "--verbose"
     environment:
       - KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN}
       - KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD?KEYCLOAK_ADMIN_PASSWORD_not_set}

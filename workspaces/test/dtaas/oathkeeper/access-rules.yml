@@ -34,6 +34,7 @@
     methods:
       - GET
       - HEAD
+      - POST
       - OPTIONS
   authenticators:
     - handler: oauth2_introspection

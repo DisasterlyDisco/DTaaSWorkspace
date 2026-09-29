@@ -203,6 +203,8 @@ This is a public client (no client secret).
    - **Client authentication**: OFF (public client — no secret)
    - **Authorization**: OFF
    - **Authentication flow**: enable **Standard flow** only
+   - **Require PKCE**: ON
+   - **PKCE Method**: S256
    - Click **Next**
 5. Login settings:
    - **Root URL**: `https://<SERVER_DNS>`
@@ -210,12 +212,7 @@ This is a public client (no client secret).
    - **Valid post logout redirect URIs**: `https://<SERVER_DNS>/*`
    - **Web origins**: `https://<SERVER_DNS>`
    - Click **Save**
-6. Enforce PKCE:
-   - Go to the **Advanced** tab
-   - Under **Advanced Settings**, set
-     **Proof Key for Code Exchange Code Challenge Method** to `S256`
-   - Click **Save**
-7. Add a `username` claim mapper so the SPA receives the username in the token:
+6. Add a `username` claim mapper so the SPA receives the username in the token:
    - Go to the **Client Scopes** tab
    - Click **`dtaas-client-dedicated`**
    - Click **Add mapper** → **By configuration** → **User Property**
