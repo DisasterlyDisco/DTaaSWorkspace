@@ -36,10 +36,6 @@ inputs:
     description: Whether to run the TLS test (true/false)
     required: false
     default: false
-  no_forward_auth_service:
-    description: Whether the composition has a forward-auth service (true/false)
-    required: false
-    default: false
   ignore_health_of_services:
     description: Comma-separated list of service names to ignore in health check (e.g. "service1,service2")
     required: false
@@ -278,14 +274,6 @@ runs:
           echo "========================================"
           docker compose -f ${{ inputs.compose_file }} $ENV_FILE_ARG \
             logs traefik
-          echo ""
-        fi
-        if [ "${{ inputs.basic_test }}" = "false" ] && [ "${{ inputs.no_forward_auth_service }}" = "false" ]; then
-          echo "========================================"
-          echo "|      Traefik Forward Auth Logs       |"
-          echo "========================================"
-          docker compose -f ${{ inputs.compose_file }} $ENV_FILE_ARG \
-            logs traefik-forward-auth
           echo ""
         fi
         if [ "${{ inputs.dex_test }}" = "true" ]; then
