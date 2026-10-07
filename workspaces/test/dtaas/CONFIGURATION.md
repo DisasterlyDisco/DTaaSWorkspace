@@ -69,7 +69,7 @@ with usernames selected for your case. These usernames are mentioned as
 ```bash
 # create required files
 cp -R files/user1 files/<USERNAME1>
-cp -R files/user1 <USERNAME2>
+cp -R files/user1 files/<USERNAME2>
 # set file permissions for use inside the container
 sudo chown -R 1000:100 files
 ```
