@@ -19,6 +19,7 @@ assume that you are in the `workspaces/test/dtaas/` directory.
   - [User Directories](#-user-directories)
   - [Domain](#-domain)
   - [Web Client](#️-dtaas-web-client-config)
+  - [HTTP](#http-protocol)
   - [OAuth2](#-oauth2-configuration)
   - [Forward Auth](#-traefik-forward-auth-configuration)
 - `compose.traefik.secure.tls.yml`:
@@ -167,6 +168,11 @@ cp config/client.js.example config/client.js
 ```
 
 Then replace all occurrences of `<your-domain>` with your domain name.
+
+### HTTP protocol
+
+If not using TLS, change all instances of `https` to `http` in the DTaaS Web
+Client config, [`config/client.js`](./config/client.js).
 
 ## 🔑 OAuth2 Configuration
 

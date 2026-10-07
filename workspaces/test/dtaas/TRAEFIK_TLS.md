@@ -165,7 +165,7 @@ domain name if testing remotely, or `localhost` if testing locally.
    - Click **Save**
 6. Repeat for additional users (e.g., `user2`)
 
-## 5. Restart Services
+### Restart Services
 
 After configuring Keycloak, restart the auth services so they pick up the
 new realm and client configuration.
