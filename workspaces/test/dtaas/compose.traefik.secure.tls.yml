@@ -92,6 +92,7 @@ services:
 
   user1:
     image: workspace:latest
+    #image: intocps/workspace:latest
     restart: unless-stopped
     build:
       context: ../..
@@ -115,6 +116,7 @@ services:
 
   user2:
     image: workspace:latest
+    #image: intocps/workspace:latest
     restart: unless-stopped
     build:
       context: ../..
