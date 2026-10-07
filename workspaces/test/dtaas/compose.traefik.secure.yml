@@ -190,7 +190,7 @@ services:
       - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
       - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
       - SERVER_DNS=${SERVER_DNS}
-      - TLS=false  # DEV ONLY 
+      - TLS=false  # DEV ONLY
       # Workspace prefixes — used to detect unknown paths and avoid redirect loops.
       # Add new users here as a comma-separated list; no code changes needed.
       - WORKSPACE_USERS=${WORKSPACE_USERS:-user1,user2}

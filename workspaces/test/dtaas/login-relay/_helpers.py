@@ -22,8 +22,10 @@ from _config import (
     SPA_PREFIXES, TLS, WORKSPACE_PREFIXES,
 )
 
+
 def _public_protocol() -> str:
     return "https" if TLS else "http"
+
 
 def _public_realm_url() -> str:
     return f"{KEYCLOAK_PUBLIC_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect"
