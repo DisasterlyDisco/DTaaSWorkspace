@@ -19,9 +19,11 @@ from _config import (
     KEYCLOAK_CLIENT_ID, KEYCLOAK_CLIENT_SECRET, KEYCLOAK_INTERNAL_URL,
     KEYCLOAK_PUBLIC_URL, KEYCLOAK_REALM, OIDC_AUTH_URL_PUBLIC, OIDC_INTROSPECTION_URL_INTERNAL,
     OIDC_ISSUER, OIDC_JWKS_URL_INTERNAL, OIDC_TOKEN_URL_INTERNAL, SERVER_DNS,
-    SPA_PREFIXES, WORKSPACE_PREFIXES,
+    SPA_PREFIXES, TLS, WORKSPACE_PREFIXES,
 )
 
+def _public_protocol() -> str:
+    return "https" if TLS else "http"
 
 def _public_realm_url() -> str:
     return f"{KEYCLOAK_PUBLIC_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect"
@@ -32,7 +34,7 @@ def _internal_realm_url() -> str:
 
 
 def _callback_uri() -> str:
-    return f"https://{SERVER_DNS}/login-relay/callback"
+    return f"{_public_protocol()}://{SERVER_DNS}/login-relay/callback"
 
 
 def _auth_url_public() -> str:

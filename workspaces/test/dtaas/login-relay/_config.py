@@ -1,6 +1,7 @@
 """Configuration constants loaded from environment variables."""
 import os
 
+TLS = os.environ.get("TLS", "true").lower() == "true"
 KEYCLOAK_PUBLIC_URL = os.environ.get("KEYCLOAK_PUBLIC_URL", "https://localhost/auth")
 KEYCLOAK_INTERNAL_URL = os.environ.get("KEYCLOAK_INTERNAL_URL", "http://keycloak:8080/auth")
 KEYCLOAK_REALM = os.environ.get("KEYCLOAK_REALM", "dtaas")
