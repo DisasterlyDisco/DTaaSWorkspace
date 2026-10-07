@@ -71,38 +71,6 @@ services:
       - frontend
       - users
 
-#  traefik-forward-auth:
-#    image: thomseddon/traefik-forward-auth:latest
-#    restart: unless-stopped
-#    volumes:
-#      - ./config/conf:/conf
-#    environment:
-#      - LOG_LEVEL=trace
-#      - DEFAULT_PROVIDER=oidc
-#      - PROVIDERS_OIDC_ISSUER_URL=${KEYCLOAK_ISSUER_URL}
-#      - PROVIDERS_OIDC_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
-#      - PROVIDERS_OIDC_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
-#      - SECRET=${OAUTH_SECRET}
-#      - INSECURE_COOKIE=true  # DEV ONLY - set to false with HTTPS in production
-#      - CONFIG=/conf
-#      - AUTH_HOST=${SERVER_DNS}
-#      - COOKIE_DOMAIN=${SERVER_DNS}
-#      - URL_PATH=/_oauth
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.redirect.entryPoints=web"
-#      - "traefik.http.routers.redirect.rule=Host(`${SERVER_DNS}`) && PathPrefix(`/_oauth`)"
-#      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.address=http://traefik-forward-auth:4181"
-#      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders=X-Forwarded-User"
-#      - "traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181"
-#    extra_hosts:
-#      - "${DOCKER_HOST_HOSTNAME:-localhost}:host-gateway"  # Maps hostname to Docker host IP for OIDC discovery
-#    networks:
-#      - frontend
-#      - users
-#    depends_on:
-#      - keycloak
-
   client:
     image: intocps/dtaas-web:latest
     restart: unless-stopped
@@ -118,8 +86,8 @@ services:
       - frontend
 
   user1:
-    #image: workspace:latest
-    image: intocps/workspace:latest
+    image: workspace:latest
+    #image: intocps/workspace:latest
     restart: unless-stopped
     build:
       context: ../..
@@ -139,15 +107,18 @@ services:
       - users
 
   user2:
-    image: mltooling/ml-workspace-minimal:0.13.2
+    image: workspace:latest
+    #image: intocps/workspace:latest
     restart: unless-stopped
+    build:
+      context: ../..
+      dockerfile: Dockerfile.ubuntu.noble.xfce
     environment:
-      - AUTHENTICATE_VIA_JUPYTER=
-      - WORKSPACE_BASE_URL=${USERNAME2:-user2}
+      - MAIN_USER=${USERNAME2:-user2}
     volumes:
       - "./files/${USERNAME2:-user2}:/workspace"
       - ./files/common:/workspace/common
-    shm_size: "512m"
+    shm_size: 512m
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.u2.entryPoints=web"
@@ -179,7 +150,7 @@ services:
       # Provides oathkeeper.yml and access-rules.yml to the container.
       - "./oathkeeper:/etc/oathkeeper/config"
     environment:
-      - LOGIN_RELAY_URL=https://${SERVER_DNS:-localhost}/login-relay
+      - LOGIN_RELAY_URL=http://${SERVER_DNS:-localhost}/login-relay
       # Username path prefixes — substituted into access-rules.yml per-user upstreams.
       - USERNAME1=${USERNAME1:-user1}
       - USERNAME2=${USERNAME2:-user2}
@@ -219,6 +190,7 @@ services:
       - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
       - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
       - SERVER_DNS=${SERVER_DNS}
+      - TLS=false  # DEV ONLY 
       # Workspace prefixes — used to detect unknown paths and avoid redirect loops.
       # Add new users here as a comma-separated list; no code changes needed.
       - WORKSPACE_USERS=${WORKSPACE_USERS:-user1,user2}
