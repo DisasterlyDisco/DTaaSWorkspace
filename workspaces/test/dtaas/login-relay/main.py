@@ -26,8 +26,8 @@ from _config import KEYCLOAK_CLIENT_ID, SERVER_DNS
 from _helpers import (
     _auth_url_public, _build_auth_params,
     _check_cross_user_redirect, _fetch_tokens, _generate_state, _proxy_introspect,
-    _public_realm_url, _safe_return_to, _set_access_token_cookie, _set_short_cookie,
-    _validate_id_token, _verify_state,
+    _public_protocol, _public_realm_url, _safe_return_to, _set_access_token_cookie,
+    _set_short_cookie, _validate_id_token, _verify_state,
 )
 
 app = FastAPI()
@@ -106,7 +106,7 @@ async def logout() -> RedirectResponse:
     logout_url = (
         f"{_public_realm_url()}/logout"
         f"?client_id={KEYCLOAK_CLIENT_ID}"
-        f"&post_logout_redirect_uri=https://{SERVER_DNS}/"
+        f"&post_logout_redirect_uri={_public_protocol()}://{SERVER_DNS}/"
     )
     response = RedirectResponse(url=logout_url, status_code=302)
     response.delete_cookie(key="dtaas_access_token", path="/")
