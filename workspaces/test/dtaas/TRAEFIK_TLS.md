@@ -32,22 +32,9 @@ The `compose.traefik.secure.tls.yml` file provides a production-ready setup with
 
 ## ⚙️ Initial Configuration
 
-Please follow the steps in [`CONFIGURATION.md`](CONFIGURATION.md) for the `compose.traefik.secure.tls.yml` composition before building the workspace and running the setup.
-
-## Create Workspace Files
-
-All the deployment options require user directories for
-storing workspace files. These need to
-be created for `USERNAME1` and `USERNAME2` set in
-`workspaces/test/dtaas/config/.env` file.
-
-```bash
-# create required files
-cp -R workspaces/test/dtaas/files/user1 workspaces/test/dtaas/files/<USERNAME1>
-cp -R workspaces/test/dtaas/files/user1 workspaces/test/dtaas/files/<USERNAME2>
-# set file permissions for use inside the container
-sudo chown -R 1000:100 workspaces/test/dtaas/files
-```
+Please follow the steps in [`CONFIGURATION.md`](CONFIGURATION.md) for the
+`compose.traefik.secure.tls.yml` composition before building the workspace and
+running the setup.
 
 ## :rocket: Start Services
 
@@ -71,23 +58,123 @@ This will:
 
 ## :gear: Configure Keycloak
 
-After starting the services, configure Keycloak.
-See [KEYCLOAK_SETUP.md](KEYCLOAK_SETUP.md) for full instructions, following the
-**TLS / Oathkeeper** client setup section.
+After starting the services, Keycloak must be configured.
+Follow the steps below, replacing `<DOMAIN_NAME>` with either either your
+domain name if testing remotely, or `localhost` if testing locally.
 
-Quick steps:
+### Access Keycloak Admin Console
 
-1. Access Keycloak at `https://<SERVER_DNS>/auth`
-2. Login with admin credentials from `.env`
-3. Create a realm named `dtaas` (or match your `KEYCLOAK_REALM`)
-4. Create a **confidential** OIDC client named `dtaas-workspace` with redirect
-   URI `https://<SERVER_DNS>/login-relay/callback`
-5. Copy the generated client secret and set `KEYCLOAK_CLIENT_SECRET` in `.env`
-6. Optionally add an **Audience mapper** to `dtaas-workspace-dedicated` scope
-   with **Included Client Audience** set to `dtaas-workspace` (not required by
-   the current setup, which uses token introspection rather than JWT validation)
-7. Create users in Keycloak matching `USERNAME1` and `USERNAME2` from `.env`
-8. Restart the oathkeeper and login-relay services
+1. Navigate to `https://<DOMAIN_NAME>/auth`
+2. Login with credentials from your `.env` file (default: `admin` / `changeme`)
+
+### Create a Realm
+
+1. In the left sidebar, click **Manage realms**.
+2. You are taken to the "Manage realms" page - click the **Create realm** button.
+3. **Realm name**: `dtaas` (you can set a different name. If you do so, make so
+  make sure that the value of `KEYCLOAK_REALM` in the
+  [environment file `config/.env`](./config/.env) matches this name.)
+4. Click **Create**
+
+### Create the workspace Client
+
+1. In the left sidebar, click **Clients**
+2. Click **Create client**
+3. Configure the client:
+   - **Client type**: OpenID Connect
+   - **Client ID**: `dtaas-workspace` (you can set a different id. If you do so, make so
+  make sure that the value of `KEYCLOAK_CLIENT_ID` in the
+  [environment file `config/.env`](./config/.env) matches this id.)
+   - Click **Next**
+4. Capability config:
+   - **Client authentication**: **ON** (confidential client)
+   - Authorization: OFF
+   - Authentication flow: enable **Standard flow**
+   - Click **Next**
+5. Login settings:
+   - **Root URL**: `https://<DOMAIN_NAME>`
+   - **Valid redirect URIs**: `https://<DOMAIN_NAME>/login-relay/callback`
+   - **Valid post logout redirect URIs**: `https://<DOMAIN_NAME>/*`
+     *(required — login-relay redirects to `/` after logout; without this
+     Keycloak will show "Invalid redirect uri")*
+   - **Web origins**: `https://<DOMAIN_NAME>`
+   - Click **Save**
+6. Get the client secret:
+   - Go to the **Credentials** tab
+   - Copy the **Client secret** value
+   - Update `KEYCLOAK_CLIENT_SECRET` in your [environment file `config/.env`](./config/.env) with this secret
+7. Add an Audience mapper so the JWT's `aud` claim contains `dtaas-workspace`
+   - Go to the **Client scopes** tab
+   - Click `dtaas-workspace-dedicated`
+   - Click **Configure a new mapper** → **Audience**
+   - Set **Name**: `dtaas-workspace-audience`
+   - Set **Included Client Audience**: `dtaas-workspace`
+   - **Add to access token**: ON
+   - Click **Save**
+
+### Create the DTaaS web Client
+
+1. In the left sidebar, click **Clients**
+2. Click **Create client**
+3. Configure the client:
+   - **Client type**: OpenID Connect
+   - **Client ID**: `dtaas-client`
+   - Click **Next**
+4. Capability config:
+   - **Client authentication**: OFF (public client — no secret)
+   - **Authorization**: OFF
+   - **Authentication flow**: enable **Standard flow** only
+   - **Require PKCE**: ON
+   - **PKCE Method**: S256
+   - Click **Next**
+5. Login settings:
+   - **Root URL**: `https://<DOMAIN_NAME>`
+   - **Valid redirect URIs**: `https://<DOMAIN_NAME>/*`
+   - **Valid post logout redirect URIs**: `https://<DOMAIN_NAME>/*`
+   - **Web origins**: `https://<DOMAIN_NAME>`
+   - Click **Save**
+6. Add a `username` claim mapper so the SPA receives the username in the token:
+   - Go to the **Client Scopes** tab
+   - Click **`dtaas-client-dedicated`**
+   - Click **Configure a new mapper** → **User Property**
+   - Fill in:
+     - **Name**: `username`
+     - **Property**: `username`
+     - **Token Claim Name**: `username`
+     - **Claim JSON Type**: `String`
+     - **Add to ID token**: ON
+     - **Add to access token**: ON
+     - **Add to userinfo**: ON
+   - Click **Save**
+
+### Create Users
+
+1. In the left sidebar, click **Users**
+2. Click **Create new user**
+3. Fill in user details:
+   - **Username**: `user1` (or desired username - make sure this matches the username set during [configuration](#️-initial-configuration))
+   - **Email**: user's email (optional)
+   - **First name** / **Last name**: optional
+   - **Email verified**: OFF
+4. Click **Create**
+5. Set password:
+   - Go to the **Credentials** tab
+   - Click **Set password**
+   - Enter a password
+   - **Temporary**: OFF (so users don't have to change it on first login)  
+   - Click **Save**
+6. Repeat for additional users (e.g., `user2`)
+
+## 5. Restart Services
+
+After configuring Keycloak, restart the auth services so they pick up the
+new realm and client configuration.
+
+```bash
+docker compose -f workspaces/test/dtaas/compose.traefik.secure.tls.yml \
+  --env-file workspaces/test/dtaas/config/.env \
+  up -d --force-recreate oathkeeper login-relay
+```
 
 ## 🔒 Authentication Flow
 
@@ -119,32 +206,32 @@ appear inside the iframe.
 ## :technologist: Accessing Workspaces
 
 Once all services are running and Keycloak is configured, access them at
-`https://<SERVER_DNS>`.
+`https://<DOMAIN_NAME>`.
 
 ### Initial Access
 
-1. Navigate to `https://<SERVER_DNS>` in your browser
+1. Navigate to `https://<DOMAIN_NAME>` in your browser
 2. You are redirected to Keycloak login
 3. Log in with a user you created in Keycloak
 4. You are redirected back to the DTaaS web interface
 
 ### Keycloak Admin Console
 
-- **URL**: `https://<SERVER_DNS>/auth`
+- **URL**: `https://<DOMAIN_NAME>/auth`
 - Login with `KEYCLOAK_ADMIN` credentials from `.env`
 
 ### DTaaS Web Client
 
-- **URL**: `https://<SERVER_DNS>/`
+- **URL**: `https://<DOMAIN_NAME>/`
 
 ### User1 Workspace
 
 All endpoints require authentication:
 
-- **VNC Desktop**: `https://<SERVER_DNS>/user1/tools/vnc?path=user1%2Ftools%2Fvnc%2Fwebsockify`
-- **VS Code**: `https://<SERVER_DNS>/user1/tools/vscode`
-- **Jupyter Notebook**: `https://<SERVER_DNS>/user1`
-- **Jupyter Lab**: `https://<SERVER_DNS>/user1/lab`
+- **VNC Desktop**: `https://<DOMAIN_NAME>/user1/tools/vnc`
+- **VS Code**: `https://<DOMAIN_NAME>/user1/tools/vscode`
+- **Jupyter Notebook**: `https://<DOMAIN_NAME>/user1`
+- **Jupyter Lab**: `https://<DOMAIN_NAME>/user1/lab`
 
 #### Service Discovery
 
@@ -155,7 +242,7 @@ for frontend applications.
 **Example**: Get service list for user1
 
 ```bash
-curl https://<SERVER_DNS>/user1/services
+curl https://<DOMAIN_NAME>/user1/services
 ```
 
 **Response**:
@@ -191,10 +278,15 @@ The endpoint values are dynamically populated with the user's username from the
 
 ### User2 Workspace
 
-- **VNC Desktop**: `https://<SERVER_DNS>/user2/tools/vnc?path=user2%2Ftools%2Fvnc%2Fwebsockify`
-- **VS Code**: `https://<SERVER_DNS>/user2/tools/vscode`
-- **Jupyter Notebook**: `https://<SERVER_DNS>/user2`
-- **Jupyter Lab**: `https://<SERVER_DNS>/user2/lab`
+- **VNC Desktop**: `https://<DOMAIN_NAME>/user2/tools/vnc`
+- **VS Code**: `https://<DOMAIN_NAME>/user2/tools/vscode`
+- **Jupyter Notebook**: `https://<DOMAIN_NAME>/user2`
+- **Jupyter Lab**: `https://<DOMAIN_NAME>/user2/lab`
+
+### Logging Out
+When logged in as one of the users:
+
+- **URL**: `https://<DOMAIN_NAME>/logout`
 
 ## 🛑 Stopping Services
 
@@ -253,8 +345,8 @@ WORKSPACE_USERS=user1,user2,user3
 Also add `USERNAME3=${USERNAME3:-user3}` to the `environment` section of the
 `oathkeeper` service (it substitutes the username into `access-rules.yml`).
 
-The `login-relay` service already picks up the new user from `WORKSPACE_USERS`
-set in step 1 — no further compose change is needed for login-relay.
+(The `login-relay` service already picks up the new user from `WORKSPACE_USERS`
+set in step 1 — no further compose change is needed for login-relay.)
 
 **3. Add an access rule in `oathkeeper/access-rules.yml`:**
 
@@ -314,7 +406,7 @@ cp -r ./workspaces/test/dtaas/files/user1 ./workspaces/test/dtaas/files/user3
 sudo chown -R 1000:100 workspaces/test/dtaas/files
 ```
 
-**5. Create the user in Keycloak** (see [KEYCLOAK_SETUP.md](KEYCLOAK_SETUP.md)).
+**5. Create the user in Keycloak** (see [Configure Keycloak - Create Users](#create-users)).
 
 **6. Redeploy:**
 
@@ -343,11 +435,12 @@ docker compose -f workspaces/test/dtaas/compose.traefik.secure.tls.yml \
 
 **Solutions**:
 
-1. Clear browser cookies for `<SERVER_DNS>`
-2. Verify the Keycloak client **Valid redirect URIs** includes `https://<SERVER_DNS>/login-relay/callback`
+1. Clear browser cookies for `<DOMAIN_NAME>`
+2. Verify the Keycloak client **Valid redirect URIs** includes `https://<DOMAIN_NAME>/login-relay/callback`
 3. Ensure `KEYCLOAK_CLIENT_ID` in `.env` matches the client ID in Keycloak
 4. Confirm client authentication is **ON** in Keycloak (confidential client)
 5. Verify `KEYCLOAK_CLIENT_SECRET` in `.env` matches the Keycloak credentials tab
+6. Verify that the `dtaas-workspace-audience` client scope is properly configured
 6. Check login-relay logs:
 
    ```bash
@@ -440,7 +533,6 @@ ambiguity.
 
 ## 📚 Additional Resources
 
-- [KEYCLOAK_SETUP.md](KEYCLOAK_SETUP.md) — Keycloak realm, client, and user setup
 - [CONFIGURATION.md](CONFIGURATION.md) — General configuration guide
 - [certs/README.md](certs/README.md) — TLS certificate setup
 - [Traefik Documentation](https://doc.traefik.io/traefik/)
